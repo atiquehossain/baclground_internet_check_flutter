@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -48,21 +49,39 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
-  final connectivity = Connectivity();
+ // final connectivity = Connectivity();
 
   service.on("stop").listen((event) {
     service.stopSelf();
     print("Background process stopped");
   });
 
-  Timer.periodic(const Duration(seconds: 5), (timer) async {
-    var result = await connectivity.checkConnectivity();
+  checkInternet();
+}
 
-    if (result == ConnectivityResult.mobile || result == ConnectivityResult.wifi) {
-      print("✅ Internet is connected");
+Future<void> checkInternet() async {
+  Timer.periodic(const Duration(seconds: 1), (timer) async {
+ // var connectivityResult = await Connectivity().checkConnectivity();
+
+/*  if (connectivityResult == ConnectivityResult.none) {
+    print(" No Internet Connection");
+    return;
+  }
+
+  print(" Network available, checking internet access...");*/
+
+  // Now, check real internet access
+  try {
+    final result = await InternetAddress.lookup('google.com');
+
+    if (result.isNotEmpty && result.first.rawAddress.isNotEmpty) {
+      print("🌍 Internet is WORKING!");
     } else {
-      print("❌ No Internet Connection");
+      print(" No Internet Access (DNS lookup failed)");
     }
+  } catch (e) {
+    print(" No Internet Access (Exception: $e)");
+  }
   });
 }
 
